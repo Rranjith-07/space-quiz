@@ -558,6 +558,7 @@
     let current = 0;
     let score = 0;
     let selected = null;
+    let answerOrder = [];
 
     const questionText = document.getElementById("questionText");
     const questionCount = document.getElementById("questionCount");
@@ -588,13 +589,20 @@
       nextButton.innerHTML = 'Lock it in <span aria-hidden="true">→</span>';
       hint.textContent = "Pick the answer you think is right.";
 
-      item.answers.forEach((answer, index) => {
+      answerOrder = item.answers.map((_, index) => index);
+      for (let index = answerOrder.length - 1; index > 0; index -= 1) {
+        const randomIndex = Math.floor(Math.random() * (index + 1));
+        [answerOrder[index], answerOrder[randomIndex]] = [answerOrder[randomIndex], answerOrder[index]];
+      }
+
+      answerOrder.forEach((answerIndex, displayIndex) => {
+        const answer = item.answers[answerIndex];
         const button = document.createElement("button");
         button.type = "button";
         button.className = "answer";
-        button.innerHTML = `<span class="answer-letter">${letters[index]}</span><span class="answer-text"></span><span class="answer-icon" aria-hidden="true"></span>`;
+        button.innerHTML = `<span class="answer-letter">${letters[displayIndex]}</span><span class="answer-text"></span><span class="answer-icon" aria-hidden="true"></span>`;
         button.querySelector(".answer-text").textContent = answer;
-        button.addEventListener("click", () => selectAnswer(index));
+        button.addEventListener("click", () => selectAnswer(answerIndex));
         answersElement.append(button);
       });
     }
@@ -607,7 +615,8 @@
       if (isCorrect) score += 1;
       scoreElement.textContent = String(score);
 
-      [...answersElement.children].forEach((button, answerIndex) => {
+      [...answersElement.children].forEach((button, displayIndex) => {
+        const answerIndex = answerOrder[displayIndex];
         button.disabled = true;
         const icon = button.querySelector(".answer-icon");
         if (answerIndex === item.correct) {
